@@ -41,7 +41,7 @@ class studentController extends Controller
     public function store(Request $request){
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|max:255',
             'email' => 'required|email|unique:student',
             'phone' => 'digits:10',
             'programming_language' => 'in:Python,Ruby,PHP,Java,Go,Kotlin,C#,C,C++,Rust,JavaScript'
@@ -99,7 +99,7 @@ class studentController extends Controller
             return response()->json($data, 404);
         }
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|max:255',
             'email' => 'required|email|unique:student',
             'phone' => 'digits:10',
             'programming_language' => 'in:Python,Ruby,PHP,Java,Go,Kotlin,C#,C,C++,Rust,JavaScript'
@@ -129,7 +129,60 @@ class studentController extends Controller
         return response()->json($data, 200);
     }
 
+    public function updateParcial(Request $request, $id)
+    {
+        $student = Student::find($id);
 
+        if (!$student) {
+            $data = [
+                'message' => 'Estudiante no encontrado',
+                'status' => 404
+            ];
+            return response()->json($data, 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'max:255',
+            'email' => 'email|unique:student',
+            'phone' => 'digits:10',
+            'programming_language' => 'in:Python,Ruby,PHP,Java,Go,Kotlin,C#,C,C++,Rust,JavaScript'
+        ]);
+
+        if ($validator->fails()) {
+            $data = [
+                'message' => 'Error en la validación de los datos',
+                'errors' => $validator->errors(),
+                'status' => 400
+            ];
+            return response()->json($data, 400);
+        }
+
+        if ($request->has('name')) {
+            $student->name = $request->name;
+        }
+
+        if ($request->has('email')) {
+            $student->email = $request->email;
+        }
+
+        if ($request->has('phone')) {
+            $student->phone = $request->phone;
+        }
+
+        if ($request->has('programming_language')) {
+            $student->programming_language = $request->input('programming_language');
+        }
+
+        $student->save();
+
+        $data = [
+            'message' => 'Estudiante actualizado',
+            'student' => $student,
+            'status' => 200
+        ];
+
+        return response()->json($data, 200);
+    }
     public function destroy($id){
         $student = Student::find($id);
 
